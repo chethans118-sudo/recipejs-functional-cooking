@@ -1,107 +1,134 @@
-const RecipeApp = (() => {
-
-  // -------------------- Recipe Data --------------------
-  const recipes = [
-    {
-      id: 1,
-      name: "Boiled Eggs",
-      ingredients: ["Eggs", "Water", "Salt"],
-      steps: ["Boil water", "Add eggs", "Cook 10 mins"]
-    },
-    {
-      id: 2,
-      name: "Pasta with Sauce",
-      ingredients: ["Pasta", "Tomato sauce", "Cheese"],
-      steps: [
-        "Boil pasta",
-        {
-          text: "Prepare sauce",
-          substeps: ["Heat pan", "Add sauce", "Simmer 5 mins"]
-        },
-        "Combine pasta and sauce"
-      ]
-    },
-    {
-      id: 3,
-      name: "Grilled Cheese Sandwich",
-      ingredients: ["Bread", "Cheese", "Butter"],
-      steps: [
-        "Butter the bread",
-        "Place cheese between slices",
-        "Grill until golden",
-        {
-          text: "Optional filling",
-          substeps: ["Add tomato", "Add herbs"]
-        }
-      ]
-    },
-    {
-      id: 4,
-      name: "Salad",
-      ingredients: ["Lettuce", "Tomato", "Cucumber", "Dressing"],
-      steps: ["Chop vegetables", "Mix in bowl", "Add dressing"]
-    }
-  ];
-
-  const recipeContainer = document.getElementById("recipe-container");
-
-  // -------------------- Recursive Steps Rendering --------------------
-  const renderSteps = (steps, level = 0) => {
-    let html = "<ol>";
-    steps.forEach(step => {
-      if (typeof step === "string") {
-        html += `<li>${step}</li>`;
-      } else if (typeof step === "object" && step.substeps) {
-        html += `<li>${step.text}${renderSteps(step.substeps, level + 1)}</li>`;
-      }
-    });
-    html += "</ol>";
-    return html;
+(() => {
+  // ====== State ======
+  const state = {
+    recipes: [
+      {
+        id: 1,
+        title: "Spaghetti Carbonara",
+        description: "Classic Italian pasta dish",
+        ingredients: ["spaghetti", "eggs", "bacon", "parmesan"],
+        steps: ["Boil pasta", "Cook bacon", "Mix eggs & cheese", "Combine all"]
+      },
+      {
+        id: 2,
+        title: "Tomato Soup",
+        description: "Comforting tomato soup",
+        ingredients: ["tomatoes", "onion", "garlic", "cream"],
+        steps: ["Saute onion & garlic", "Add tomatoes", "Simmer", "Blend & serve"]
+      },
+      {
+        id: 3,
+        title: "Pancakes",
+        description: "Fluffy breakfast pancakes",
+        ingredients: ["flour", "milk", "eggs", "sugar", "baking powder"],
+        steps: ["Mix dry ingredients", "Add wet ingredients", "Cook on skillet"]
+      },
+      // Add more recipes as needed
+    ],
+    searchQuery: "",
+    favoritesOnly: false,
+    favorites: JSON.parse(localStorage.getItem("recipeFavorites")) || [],
   };
 
-  // -------------------- Create Recipe Card --------------------
-  const createRecipeCard = recipe => {
+  // ====== DOM References ======
+  const recipeContainer = document.getElementById("recipe-container");
+  const searchInput = document.getElementById("search-input");
+  const clearSearchBtn = document.getElementById("clear-search");
+  const favoritesBtn = document.getElementById("favorites-only-btn");
+  const recipeCounter = document.getElementById("recipe-counter");
+
+  // ====== Helpers ======
+  const saveFavorites = () => {
+    localStorage.setItem("recipeFavorites", JSON.stringify(state.favorites));
+  };
+
+  const toggleFavorite = (id) => {
+    const index = state.favorites.indexOf(id);
+    if (index === -1) state.favorites.push(id);
+    else state.favorites.splice(index, 1);
+    saveFavorites();
+    updateDisplay();
+  };
+
+  const isFavorited = (id) => state.favorites.includes(id);
+
+  const createRecipeCard = (recipe) => {
     const card = document.createElement("div");
     card.className = "recipe-card";
-    card.dataset.recipeId = recipe.id;
-
     card.innerHTML = `
-      <h3>${recipe.name}</h3>
-      <button class="toggle-btn" data-toggle="steps" data-recipe-id="${recipe.id}">Show Steps</button>
-      <button class="toggle-btn" data-toggle="ingredients" data-recipe-id="${recipe.id}">Show Ingredients</button>
-      <div class="steps-container">${renderSteps(recipe.steps)}</div>
-      <div class="ingredients-container"><ul>${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}</ul></div>
+      <h2>${recipe.title}</h2>
+      <p>${recipe.description}</p>
+      <ul>
+        ${recipe.ingredients.map(i => `<li>${i}</li>`).join("")}
+      </ul>
+      <button class="favorite-btn ${isFavorited(recipe.id) ? "favorited" : ""}" data-id="${recipe.id}">&#10084;</button>
     `;
-
-    recipeContainer.appendChild(card);
+    return card;
   };
 
-  // -------------------- Toggle Button Handler --------------------
-  const handleToggleClick = e => {
-    if (!e.target.classList.contains("toggle-btn")) return;
+  const applyFilters = () => {
+    let filtered = state.recipes;
 
-    const recipeId = e.target.dataset.recipeId;
-    const toggleType = e.target.dataset.toggle;
+    // Search filter
+    if (state.searchQuery.trim()) {
+      const q = state.searchQuery.toLowerCase();
+      filtered = filtered.filter(r => 
+        r.title.toLowerCase().includes(q) ||
+        r.ingredients.some(i => i.toLowerCase().includes(q))
+      );
+    }
 
-    const container = document.querySelector(`.recipe-card[data-recipe-id="${recipeId}"] .${toggleType}-container`);
-    container.classList.toggle("visible");
+    // Favorites-only filter
+    if (state.favoritesOnly) {
+      filtered = filtered.filter(r => isFavorited(r.id));
+    }
 
-    e.target.textContent = container.classList.contains("visible")
-      ? `Hide ${toggleType.charAt(0).toUpperCase() + toggleType.slice(1)}`
-      : `Show ${toggleType.charAt(0).toUpperCase() + toggleType.slice(1)}`;
+    return filtered;
   };
 
-  // -------------------- Initialize App --------------------
+  const updateDisplay = () => {
+    recipeContainer.innerHTML = "";
+    const filtered = applyFilters();
+    filtered.forEach(r => recipeContainer.appendChild(createRecipeCard(r)));
+    recipeCounter.textContent = `Showing ${filtered.length} of ${state.recipes.length} recipes`;
+  };
+
+  // ====== Event Handlers ======
+  let debounceTimer;
+  searchInput.addEventListener("input", (e) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      state.searchQuery = e.target.value;
+      updateDisplay();
+      clearSearchBtn.hidden = !state.searchQuery;
+    }, 300);
+  });
+
+  clearSearchBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    state.searchQuery = "";
+    clearSearchBtn.hidden = true;
+    updateDisplay();
+  });
+
+  favoritesBtn.addEventListener("click", () => {
+    state.favoritesOnly = !state.favoritesOnly;
+    favoritesBtn.textContent = state.favoritesOnly ? "Showing Favorites" : "Favorites Only";
+    updateDisplay();
+  });
+
+  recipeContainer.addEventListener("click", (e) => {
+    if (e.target.classList.contains("favorite-btn")) {
+      const id = parseInt(e.target.dataset.id);
+      toggleFavorite(id);
+    }
+  });
+
+  // ====== Init ======
   const init = () => {
-    console.log("RecipeApp initializing...");
-    recipes.forEach(createRecipeCard);
-    recipeContainer.addEventListener("click", handleToggleClick);
-    console.log("RecipeApp ready!");
+    console.log("App initialized!");
+    updateDisplay();
   };
 
-  return { init };
-
+  init();
 })();
-
-// Run on DOM ready
-document.addEventListener("DOMContentLoaded", RecipeApp.init);

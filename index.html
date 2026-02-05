@@ -3,29 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RecipeJS - Functional Cooking Companion</title>
+  <title>RecipeJS - Functional Cooking</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>RecipeJS</h1>
-    <p>Your Functional Cooking Companion</p>
+    <h1>Functional Cooking Companion</h1>
+    <!-- Part 4: Search Bar -->
+    <input type="text" id="search-input" placeholder="Search recipes...">
+    <button id="clear-search" hidden>Clear</button>
   </header>
 
-  <section class="controls">
-    <button id="show-all">Show All</button>
-    <button id="filter-easy">Easy</button>
-    <button id="filter-medium">Medium</button>
-    <button id="filter-hard">Hard</button>
-    <button id="filter-quick">Quick Recipes</button>
-    <button id="sort-default">Default Order</button>
-    <button id="sort-name">Name (A-Z)</button>
-    <button id="sort-time">Time (Fastest First)</button>
-  </section>
+  <main>
+    <div class="controls">
+      <!-- Part 4: Favorites Filter -->
+      <button id="favorites-only-btn">Favorites Only</button>
+      <!-- Recipe counter -->
+      <span id="recipe-counter">Showing 0 of 0 recipes</span>
+    </div>
 
-  <div id="recipe-container">
-    <!-- Recipe cards will be rendered here -->
-  </div>
+    <div id="recipe-container">
+      <!-- Recipe cards will be rendered here -->
+    </div>
+  </main>
 
   <script src="app.js"></script>
 </body>
