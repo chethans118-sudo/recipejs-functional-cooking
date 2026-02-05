@@ -1,0 +1,22 @@
+/* Expandable steps and ingredients */
+.steps-container,
+.ingredients-container {
+  display: none; /* hidden by default */
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.steps-container.visible,
+.ingredients-container.visible {
+  display: block; /* show when toggled */
+}
+
+.steps-container li {
+  margin-bottom: 5px;
+}
+
+.toggle-btn {
+  margin-right: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
