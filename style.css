@@ -1,30 +1,22 @@
-
-
-/* Controls Section */
-#controls {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  margin: 2rem auto 1.5rem;
-  max-width: 1200px;
-  gap: 0.5rem;
+/* Expandable steps and ingredients */
+.steps-container,
+.ingredients-container {
+  display: none; /* hidden by default */
+  margin-top: 10px;
+  padding-left: 20px;
 }
 
-#controls button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #eee;
+.steps-container.visible,
+.ingredients-container.visible {
+  display: block; /* show when toggled */
+}
+
+.steps-container li {
+  margin-bottom: 5px;
+}
+
+.toggle-btn {
+  margin-right: 10px;
+  padding: 5px 10px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-#controls button:hover {
-  background-color: #764ba2;
-  color: white;
-}
-
-#controls button.active {
-  background-color: #667eea;
-  color: white;
 }

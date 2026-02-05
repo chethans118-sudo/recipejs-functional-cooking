@@ -1,39 +1,32 @@
-
-
-  <!-- Header Section -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecipeJS - Functional Cooking Companion</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
   <header>
     <h1>RecipeJS</h1>
     <p>Your Functional Cooking Companion</p>
   </header>
 
-  <!-- Control Buttons -->
-  <div id="controls">
-    <!-- Filter Buttons -->
-    <div id="filter-buttons">
-      <button data-filter="all" class="active">Show All</button>
-      <button data-filter="easy">Easy</button>
-      <button data-filter="medium">Medium</button>
-      <button data-filter="hard">Hard</button>
-      <button data-filter="quick">Quick Recipes</button>
-    </div>
+  <section class="controls">
+    <button id="show-all">Show All</button>
+    <button id="filter-easy">Easy</button>
+    <button id="filter-medium">Medium</button>
+    <button id="filter-hard">Hard</button>
+    <button id="filter-quick">Quick Recipes</button>
+    <button id="sort-default">Default Order</button>
+    <button id="sort-name">Name (A-Z)</button>
+    <button id="sort-time">Time (Fastest First)</button>
+  </section>
 
-    <!-- Sort Buttons -->
-    <div id="sort-buttons">
-      <button data-sort="none" class="active">Default Order</button>
-      <button data-sort="name">Name (A-Z)</button>
-      <button data-sort="time">Time (Fastest First)</button>
-    </div>
+  <div id="recipe-container">
+    <!-- Recipe cards will be rendered here -->
   </div>
-
-  <!-- Main Content -->
-  <main>
-    <div id="recipe-container">
-      <!-- Recipe cards will be rendered here by JavaScript -->
-    </div>
-  </main>
 
   <script src="app.js"></script>
 </body>
 </html>
-<script src="app.js"></script>
-

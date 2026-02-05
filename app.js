@@ -1,97 +1,107 @@
-// State
-let currentFilter = 'all';
-let currentSort = 'none';
+const RecipeApp = (() => {
 
-// DOM References
-const recipeContainer = document.querySelector('#recipe-container');
-const filterButtons = document.querySelectorAll('#filter-buttons button');
-const sortButtons = document.querySelectorAll('#sort-buttons button');
+  // -------------------- Recipe Data --------------------
+  const recipes = [
+    {
+      id: 1,
+      name: "Boiled Eggs",
+      ingredients: ["Eggs", "Water", "Salt"],
+      steps: ["Boil water", "Add eggs", "Cook 10 mins"]
+    },
+    {
+      id: 2,
+      name: "Pasta with Sauce",
+      ingredients: ["Pasta", "Tomato sauce", "Cheese"],
+      steps: [
+        "Boil pasta",
+        {
+          text: "Prepare sauce",
+          substeps: ["Heat pan", "Add sauce", "Simmer 5 mins"]
+        },
+        "Combine pasta and sauce"
+      ]
+    },
+    {
+      id: 3,
+      name: "Grilled Cheese Sandwich",
+      ingredients: ["Bread", "Cheese", "Butter"],
+      steps: [
+        "Butter the bread",
+        "Place cheese between slices",
+        "Grill until golden",
+        {
+          text: "Optional filling",
+          substeps: ["Add tomato", "Add herbs"]
+        }
+      ]
+    },
+    {
+      id: 4,
+      name: "Salad",
+      ingredients: ["Lettuce", "Tomato", "Cucumber", "Dressing"],
+      steps: ["Chop vegetables", "Mix in bowl", "Add dressing"]
+    }
+  ];
 
-// --- Pure Filter Functions ---
-const filterByDifficulty = (recipes, difficulty) => {
-  if (difficulty === 'all') return recipes;
-  return recipes.filter(recipe => recipe.difficulty === difficulty);
-};
+  const recipeContainer = document.getElementById("recipe-container");
 
-const filterByTime = (recipes, maxTime) => {
-  return recipes.filter(recipe => recipe.time <= maxTime);
-};
-
-const applyFilter = (recipes, filterType) => {
-  switch (filterType) {
-    case 'easy': return filterByDifficulty(recipes, 'easy');
-    case 'medium': return filterByDifficulty(recipes, 'medium');
-    case 'hard': return filterByDifficulty(recipes, 'hard');
-    case 'quick': return filterByTime(recipes, 30);
-    default: return recipes;
-  }
-};
-
-// --- Pure Sort Functions ---
-const sortByName = (recipes) => [...recipes].sort((a, b) => a.title.localeCompare(b.title));
-const sortByTime = (recipes) => [...recipes].sort((a, b) => a.time - b.time);
-
-const applySort = (recipes, sortType) => {
-  switch (sortType) {
-    case 'name': return sortByName(recipes);
-    case 'time': return sortByTime(recipes);
-    default: return recipes;
-  }
-};
-
-// --- Render Recipes (from Part 1) ---
-const createRecipeCard = (recipe) => {
-  return `
-  <div class="recipe-card" data-id="${recipe.id}">
-    <h3>${recipe.title}</h3>
-    <div class="recipe-meta">
-      <span>⏱️ ${recipe.time} min</span>
-      <span class="difficulty ${recipe.difficulty}">${recipe.difficulty}</span>
-    </div>
-    <p>${recipe.description}</p>
-  </div>
-  `;
-};
-
-const renderRecipes = (recipesToRender) => {
-  recipeContainer.innerHTML = recipesToRender.map(createRecipeCard).join('');
-};
-
-// --- Update Display ---
-const updateDisplay = () => {
-  let recipesToDisplay = applyFilter(recipes, currentFilter);
-  recipesToDisplay = applySort(recipesToDisplay, currentSort);
-  renderRecipes(recipesToDisplay);
-  updateActiveButtons();
-};
-
-// --- Update Active Button Styles ---
-const updateActiveButtons = () => {
-  filterButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filter === currentFilter);
-  });
-  sortButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sort === currentSort);
-  });
-};
-
-// --- Event Listeners ---
-const setupEventListeners = () => {
-  filterButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentFilter = btn.dataset.filter;
-      updateDisplay();
+  // -------------------- Recursive Steps Rendering --------------------
+  const renderSteps = (steps, level = 0) => {
+    let html = "<ol>";
+    steps.forEach(step => {
+      if (typeof step === "string") {
+        html += `<li>${step}</li>`;
+      } else if (typeof step === "object" && step.substeps) {
+        html += `<li>${step.text}${renderSteps(step.substeps, level + 1)}</li>`;
+      }
     });
-  });
+    html += "</ol>";
+    return html;
+  };
 
-  sortButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentSort = btn.dataset.sort;
-      updateDisplay();
-    });
-  });
-};
+  // -------------------- Create Recipe Card --------------------
+  const createRecipeCard = recipe => {
+    const card = document.createElement("div");
+    card.className = "recipe-card";
+    card.dataset.recipeId = recipe.id;
 
-// --- Initialize ---
-updateDisplay();
-setupEventListeners();
+    card.innerHTML = `
+      <h3>${recipe.name}</h3>
+      <button class="toggle-btn" data-toggle="steps" data-recipe-id="${recipe.id}">Show Steps</button>
+      <button class="toggle-btn" data-toggle="ingredients" data-recipe-id="${recipe.id}">Show Ingredients</button>
+      <div class="steps-container">${renderSteps(recipe.steps)}</div>
+      <div class="ingredients-container"><ul>${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}</ul></div>
+    `;
+
+    recipeContainer.appendChild(card);
+  };
+
+  // -------------------- Toggle Button Handler --------------------
+  const handleToggleClick = e => {
+    if (!e.target.classList.contains("toggle-btn")) return;
+
+    const recipeId = e.target.dataset.recipeId;
+    const toggleType = e.target.dataset.toggle;
+
+    const container = document.querySelector(`.recipe-card[data-recipe-id="${recipeId}"] .${toggleType}-container`);
+    container.classList.toggle("visible");
+
+    e.target.textContent = container.classList.contains("visible")
+      ? `Hide ${toggleType.charAt(0).toUpperCase() + toggleType.slice(1)}`
+      : `Show ${toggleType.charAt(0).toUpperCase() + toggleType.slice(1)}`;
+  };
+
+  // -------------------- Initialize App --------------------
+  const init = () => {
+    console.log("RecipeApp initializing...");
+    recipes.forEach(createRecipeCard);
+    recipeContainer.addEventListener("click", handleToggleClick);
+    console.log("RecipeApp ready!");
+  };
+
+  return { init };
+
+})();
+
+// Run on DOM ready
+document.addEventListener("DOMContentLoaded", RecipeApp.init);
